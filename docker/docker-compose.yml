@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:1.21.6
+    restart: on-failure
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    volumes:
+      - ${APP_PATH}:/usr/local/www/data/${APP_NAME}
+      - ${NGINX_PATH}conf.d/:/etc/nginx/conf.d/
+      - ${NGINX_PATH}/nginx.conf/:/etc/nginx/nginx.conf/
+
+  app:
+    container_name: app
+    build:
+      context: images/app
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_DEBUG: 1
+    working_dir: /usr/local/www/data/${APP_NAME}
+    depends_on:
+      - db
+    volumes:
+      - ${APP_PATH}:/usr/local/www/data/${APP_NAME}
+
+  db:
+    container_name: db
+    image: percona:5.7.35
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ${DB_PATH}:/var/lib/mysql
+    ports:
+      - '3306:3306'
