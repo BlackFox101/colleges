@@ -2,4 +2,4 @@
 
 set -o errexit
 
-exec docker exec -it db mysql
+exec docker exec -it db mysql -uroot -proot colleges
