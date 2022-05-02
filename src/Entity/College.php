@@ -16,7 +16,7 @@ class College
     private $collegeId;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private string|null $name;
+    private string $name;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private string|null $city;
@@ -41,6 +41,12 @@ class College
 
     #[ORM\Column(type: 'datetime', nullable: true, columnDefinition: 'TIMESTAMP NULL')]
     private ?DateTimeInterface $updatedAt;
+
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+    }
+
 
     public function getId(): ?int
     {
