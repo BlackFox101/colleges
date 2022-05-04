@@ -21,4 +21,22 @@ class CollegeRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, College::class);
     }
+
+    public function setAllCollegesIsDeprecated(): int
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->update('App:College', 'c')
+            ->set('c.isDeprecated', true);
+
+        return $qb->getQuery()->execute();
+    }
+
+    public function deleteDeprecatedColleges(): int
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->delete('App:College', 'c')
+            ->where('c.isDeprecated = 1');
+
+        return $qb->getQuery()->execute();
+    }
 }
