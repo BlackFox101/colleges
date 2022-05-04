@@ -21,7 +21,7 @@ class College
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private string|null $city;
 
-    #[ORM\Column(type: 'string', length: 2, nullable: true)]
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
     private string|null $state;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
@@ -42,11 +42,13 @@ class College
     #[ORM\Column(type: 'datetime', nullable: true, columnDefinition: 'TIMESTAMP NULL')]
     private ?DateTimeInterface $updatedAt;
 
+    #[ORM\Column(type: 'boolean', columnDefinition: 'TINYINT(1) DEFAULT 0 NOT NULL')]
+    private bool $isDeprecated = false;
+
     public function __construct(string $name)
     {
         $this->name = $name;
     }
-
 
     public function getId(): ?int
     {
@@ -157,6 +159,18 @@ class College
     public function setUpdatedAt(DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function isDeprecated(): bool
+    {
+        return $this->isDeprecated;
+    }
+
+    public function setIsDeprecated(bool $isDeprecated): self
+    {
+        $this->isDeprecated = $isDeprecated;
 
         return $this;
     }
