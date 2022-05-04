@@ -74,11 +74,11 @@ class GetAllCollegesDataCommand extends Command
                 $pageNumber++;
             }
 
-            $deletedColleges = $this->collegesRepo->deleteDeprecatedColleges();
+            $deletedCollegesCount = $this->collegesRepo->deleteDeprecatedColleges();
 
             $io->success('Total colleges added: ' . $newCollegesCount . "\n"
                 . 'Total colleges updated: ' . $updatedCollegesCount . "\n"
-                . 'Total colleges deleted: '. $deletedColleges);
+                . 'Total colleges deleted: '. $deletedCollegesCount);
         }
         catch (ExceptionInterface $e)
         {
