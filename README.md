@@ -1,6 +1,6 @@
 ## Запуск скрипта
 ```bash
-php bin/console app:get-all-colleges <start-page-number> <--advanced>
+php bin/console app:get-colleges <start-page-number>
 ```
 
 ### Параметры
