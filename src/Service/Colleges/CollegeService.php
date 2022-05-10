@@ -6,7 +6,6 @@ namespace App\Service\Colleges;
 use App\Entity\College;
 use App\Repository\CollegeRepository;
 use App\Service\Http\HttpRequest;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -45,7 +44,6 @@ class CollegeService
         $updatedCollegesCount = 0;
         for ($page = $startPage; $parser->isNextPageExist(); $page++)
         {
-            $startTime = new DateTime('now');
             $pageUrl = self::HTTPS . '://' . self::DOMAIN . self::COLLEGES_URL . "&page=$page";
 
             try
@@ -67,20 +65,15 @@ class CollegeService
             $newCollegesCount += $newColleges;
             $updatedCollegesCount += $updatedColleges;
 
-            $endTime = new DateTime('now');
-            $interval = $startTime->diff($endTime);
-            $time = $interval->format('%i минут %S секунд %f  микросекунд');
-
             $io->info('Page: ' . $pageUrl . "\n"
-                .'Found colleges: ' . count($colleges) . "\n"
-                .'Time: ' . $time);
+                .'Found colleges: ' . count($colleges) . "\n");
         }
         $this->entityManager->flush();
 
         return [$newCollegesCount, $updatedCollegesCount];
     }
 
-    public function saveColleges(array $collegesData): array
+    private function saveColleges(array $collegesData): array
     {
         $newCollegesCount = 0;
         $updatedCollegesCount = 0;
