@@ -56,7 +56,7 @@ class CollegeService
                     . 'Page: ' . $pageUrl
                     . $e->getMessage() . "\n"
                     . $e->getFile() . ':' . $e->getLine());
-                continue;
+                break;
             }
 
             $colleges = $parser->getDataFromCollegesList($page, $html);
