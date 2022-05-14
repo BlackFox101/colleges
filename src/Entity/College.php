@@ -36,6 +36,9 @@ class College
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private string|null $imageUrl;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private string $collegePageUrl;
+
     #[ORM\Column(type: 'datetime', columnDefinition: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL')]
     private DateTimeInterface $createdAt;
 
@@ -171,6 +174,18 @@ class College
     public function setIsDeprecated(bool $isDeprecated): self
     {
         $this->isDeprecated = $isDeprecated;
+
+        return $this;
+    }
+
+    public function getCollegePageUrl(): ?string
+    {
+        return $this->collegePageUrl;
+    }
+
+    public function setCollegePageUrl(string $collegePageUrl): self
+    {
+        $this->collegePageUrl = $collegePageUrl;
 
         return $this;
     }
