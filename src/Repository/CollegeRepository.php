@@ -39,4 +39,20 @@ class CollegeRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->execute();
     }
+
+    /**
+     * @param College[] $colleges
+     * @return void
+     */
+    public function saveColleges(array $colleges): void
+    {
+        $entityManager = $this->getEntityManager();
+
+        foreach ($colleges as $college)
+        {
+            $entityManager->persist($college);
+        }
+
+        $entityManager->flush();
+    }
 }
