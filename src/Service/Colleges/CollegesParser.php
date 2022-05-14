@@ -3,97 +3,52 @@ declare(strict_types=1);
 
 namespace App\Service\Colleges;
 
-use App\Service\Http\HttpRequest;
-use Exception;
-use Psr\Log\LoggerInterface;
+use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\DomCrawler\Crawler;
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 
 class CollegesParser
 {
-    private bool $isNextPageExist = true;
-    private LoggerInterface $logger;
+    private const NAME = 'name';
+    private const CITY = 'city';
+    private const STATE = 'state';
+    private const ADDRESS = 'address';
+    private const PHONE = 'phone';
+    private const SITE = 'site';
+    private const IMAGE_URL = 'image_url';
+    private const COLLEGE_PAGE_URL = 'college_page_url';
 
-    public function __construct(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-    }
-
-    public function getDataFromCollegesList(int $page, string $html): array
+    #[ArrayShape([
+        self::NAME => 'string',
+        self::CITY => 'string',
+        self::STATE => 'string',
+        self::IMAGE_URL => 'string',
+        self::COLLEGE_PAGE_URL => 'string'
+    ])]
+    public function getDataFromCollegeList(string $html): array
     {
         $crawler = new Crawler($html);
         $collegesRows = $crawler->filter('.row .vertical-padding');
         if (count($collegesRows) <= 0)
         {
-            $this->isNextPageExist = false;
             return [];
         }
 
         $collegesData = [];
-        foreach ($collegesRows as $index => $row)
+        foreach ($collegesRows as $row)
         {
             $node = new Crawler($row);
-            try
-            {
-                $collegesData[] =  $this->getCollegeData($node);
-            }
-            catch (Exception $e)
-            {
-                $this->logger->error("Page: $page, College: $index;\n" . $e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine());
-            }
+            $collegesData[] =  $this->getCollegeInfo($node);
         }
 
         return $collegesData;
     }
 
-    public function isNextPageExist(): bool
-    {
-        return $this->isNextPageExist;
-    }
-
-    private function getCollegeData(Crawler $node): array
-    {
-        if ($node->count() < 0)
-        {
-            return [];
-        }
-
-        $collegePageHref = $node->filter('a')->attr('href');
-        $infoNode = $node->filter('h2');
-        $data[CollegeService::NAME] = $infoNode->text();
-
-        $locationNode = $infoNode->nextAll()->filter('.location');
-        if ($locationNode->count() > 0)
-        {
-            [$city, $state] = explode(',', $locationNode->text());
-
-            $data[CollegeService::CITY] = $city;
-            $data[CollegeService::STATE] = trim($state);
-        }
-        $image = $node->selectImage($data[CollegeService::NAME])->filter('.school-image-large, .school-image');
-        if ($image->count() > 0 )
-        {
-            $data[CollegeService::IMAGE_URL] = CollegeService::HTTPS . ':' . $image->attr('src');
-        }
-
-        $collegePageUrl = CollegeService::HTTPS . '://' . CollegeService::DOMAIN . $collegePageHref;
-        try
-        {
-            $html = HttpRequest::getHtml($collegePageUrl);
-            return array_merge($data, $this->getDataFromCollegePage($html));
-        }
-        catch (ExceptionInterface $e)
-        {
-            $this->logger->error("Error when getting the college page.\n"
-                . 'Page: ' . $collegePageUrl
-                . $e->getMessage() . "\n"
-                . $e->getFile() . ':' . $e->getLine());
-        }
-
-        return $data;
-    }
-
-    private function getDataFromCollegePage(string $html): array
+    #[ArrayShape([
+        self::ADDRESS => 'string',
+        self::PHONE => 'string',
+        self::SITE => 'string'
+    ])]
+    public function getDetailedInfoFromCollegePage(string $html): array
     {
         $crawler = new Crawler($html);
 
@@ -104,12 +59,12 @@ class CollegesParser
             $span = new Crawler($node);
             $address .=  ' ' . $span->text();
         }
-        $data[CollegeService::ADDRESS] = $address;
+        $data[self::ADDRESS] = $address;
 
         $websiteNode = $crawler->filter('div[itemprop="address"] > a');
         if ($websiteNode->count() > 0)
         {
-            $data[CollegeService::SITE] = $websiteNode->attr('href');
+            $data[self::SITE] = $websiteNode->attr('href');
         }
 
         $schoolDataNode = $crawler->filter('.school-contacts');
@@ -123,8 +78,48 @@ class CollegesParser
 
             if ($dataNodes->eq(0)->text() === 'Phone')
             {
-                $data[CollegeService::PHONE] = $dataNodes->eq(1)->text();
+                $data[self::PHONE] = $dataNodes->eq(1)->text();
             }
+        }
+
+        return $data;
+    }
+
+    public function getMaxPageNumber(string $html): int
+    {
+        $crawler = new Crawler($html);
+        $pageInputNode = $crawler->filter('input[name="Page"]');
+        $pageNode = $pageInputNode->nextAll();
+
+        $pageNumbers = $pageNode->text();
+        [, $endPage] = preg_split('/\D+/', $pageNumbers, 2, PREG_SPLIT_NO_EMPTY);
+
+        return (int)$endPage;
+    }
+
+    private function getCollegeInfo(Crawler $node): array
+    {
+        if ($node->count() < 0)
+        {
+            return [];
+        }
+
+        $data[self::COLLEGE_PAGE_URL] = $node->filter('a')->attr('href');
+        $infoNode = $node->filter('h2');
+        $data[self::NAME] = $infoNode->text();
+
+        $locationNode = $infoNode->nextAll()->filter('.location');
+        if ($locationNode->count() > 0)
+        {
+            [$city, $state] = explode(',', $locationNode->text());
+
+            $data[self::CITY] = $city;
+            $data[self::STATE] = trim($state);
+        }
+        $image = $node->selectImage($data[self::NAME])->filter('.school-image-large, .school-image');
+        if ($image->count() > 0 )
+        {
+            $data[self::IMAGE_URL] = $image->attr('src');
         }
 
         return $data;
