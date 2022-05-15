@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Service\Colleges;
 
+use InvalidArgumentException;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -24,6 +25,11 @@ class CollegesParser
         self::IMAGE_URL => 'string',
         self::COLLEGE_PAGE_URL => 'string'
     ])]
+    /**
+     * @param string $html
+     * @return array
+     * @throws InvalidArgumentException
+     */
     public function getDataFromCollegeList(string $html): array
     {
         $crawler = new Crawler($html);
@@ -48,6 +54,11 @@ class CollegesParser
         self::PHONE => 'string',
         self::SITE => 'string'
     ])]
+    /**
+     * @param string $html
+     * @return array
+     * @throws InvalidArgumentException
+     */
     public function getDetailedInfoFromCollegePage(string $html): array
     {
         $crawler = new Crawler($html);
@@ -85,6 +96,11 @@ class CollegesParser
         return $data;
     }
 
+    /**
+     * @param string $html
+     * @return int
+     * @throws InvalidArgumentException
+     */
     public function getMaxPageNumber(string $html): int
     {
         $crawler = new Crawler($html);
