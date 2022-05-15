@@ -5,15 +5,23 @@ namespace App\Service\Http;
 
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class HttpRequest
 {
+    private HttpClientInterface $httpClient;
+
+    public function __construct()
+    {
+        $this->httpClient = HttpClient::create();
+    }
+
     /**
      * @throws TransportExceptionInterface
      */
-    public static function getRequest(string $url): ResponseInterface
+    public function getResponse(string $url): ResponseInterface
     {
-        return HttpClient::create()->request('GET', $url);
+        return $this->httpClient->request('GET', $url);
     }
 }
