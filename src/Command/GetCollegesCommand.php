@@ -31,6 +31,10 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 )]
 class GetCollegesCommand extends Command
 {
+    private const OPTION_SURFACE_DATA = 'surface';
+    private const OPTION_DETAILED_INFO = 'detailed';
+    private const OPTION_DETAILED_IF_NEW = 'new';
+
     private CollegeService $collegeService;
     private CollegeRepository $collegeRepository;
 
@@ -45,7 +49,7 @@ class GetCollegesCommand extends Command
     {
         $this
             ->addArgument('startPage', InputArgument::OPTIONAL, 'Start page')
-            ->addArgument('endPage', InputArgument::OPTIONAL, 'End page')
+            ->addArgument('quantity', InputArgument::OPTIONAL, 'Pages quantity')
             ->addOption('option', null, InputOption::VALUE_REQUIRED, 'Specifies a college data collection option', 'surface')
         ;
     }
@@ -55,10 +59,10 @@ class GetCollegesCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $startPage = $input->getArgument('startPage');
-        $endPage = $input->getArgument('endPage');
+        $quantity = $input->getArgument('quantity');
         $option = $this->getOption($input->getOption('option'));
 
-        $isDeleteOldNeeded = $this->isDeleteNeeded($startPage, $endPage);
+        $isDeleteOldNeeded = $this->isDeleteNeeded($startPage, $quantity);
         try
         {
             if ($isDeleteOldNeeded)
@@ -68,9 +72,23 @@ class GetCollegesCommand extends Command
             }
 
             // Получить коллежди
-            [$newColleges, $updatedColleges] = $this->collegeService->getColleges($option, $startPage, $endPage);
+            [$newColleges, $updatedColleges] = $this->collegeService->getColleges($startPage, $quantity);
+
+            // Получить подробную информацию у новых колледжей
+            if ($option === self::OPTION_DETAILED_IF_NEW)
+            {
+                $this->collegeService->getDetailedCollegesInfo($newColleges);
+            }
+
+            $colleges = array_merge($newColleges, $updatedColleges);
+            // Получить подробную информацию у всех колледжей
+            if ($option === self::OPTION_DETAILED_INFO)
+            {
+                $this->collegeService->getDetailedCollegesInfo($colleges);
+            }
+
             // Сохранить коллежди
-            $this->collegeRepository->saveColleges(array_merge($newColleges, $updatedColleges));
+            $this->collegeRepository->saveColleges($colleges);
 
             if ($isDeleteOldNeeded)
             {
@@ -96,19 +114,19 @@ class GetCollegesCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function isDeleteNeeded(?int $startPage, ?int $endPage): bool
+    private function isDeleteNeeded(?int $startPage, ?int $quantity): bool
     {
-        if (!isset($startPage) && !isset($endPage))
+        if (!isset($startPage) && !isset($quantity))
         {
             return true;
         }
 
-        if (isset($startPage, $endPage))
+        if (isset($startPage, $quantity))
         {
             return false;
         }
 
-        if (!isset($endPage))
+        if (!isset($quantity))
         {
             return $startPage === 1;
         }
@@ -119,9 +137,9 @@ class GetCollegesCommand extends Command
     private function getOption(?string $option): string
     {
         return match ($option) {
-            'detailed' => CollegeService::OPTION_DETAILED_INFO,
-            'new' => CollegeService::OPTION_DETAILED_IF_NEW,
-            default => CollegeService::OPTION_SURFACE_DATA,
+            'detailed' => self::OPTION_DETAILED_INFO,
+            'new' => self::OPTION_DETAILED_IF_NEW,
+            default => self::OPTION_SURFACE_DATA,
         };
     }
 }

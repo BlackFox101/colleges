@@ -18,10 +18,6 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class CollegeService
 {
-    public const OPTION_SURFACE_DATA = 'surface';
-    public const OPTION_DETAILED_INFO = 'detailed';
-    public const OPTION_DETAILED_IF_NEW = 'new';
-
     private const DOMAIN = 'www.princetonreview.com';
     private const COLLEGES_URL = '/college-search?ceid=cp-1022984';
     private const START_PAGE_NUMBER = 1;
@@ -43,25 +39,24 @@ class CollegeService
     }
 
     /**
-     * @param string $option
      * @param int|null $startPage
-     * @param int|null $endPage
+     * @param int|null $quantity
      * @return array
      * @throws TransportExceptionInterface
      * @throws HttpExceptionInterface
      */
-    public function getColleges(string $option = self::OPTION_SURFACE_DATA, ?int $startPage = self::START_PAGE_NUMBER, ?int $endPage = PHP_INT_MAX): array
+    public function getColleges(?int $startPage = self::START_PAGE_NUMBER, ?int $quantity = PHP_INT_MAX): array
     {
         $startPage = $startPage ?? self::START_PAGE_NUMBER;
-        $endPage = $endPage ?? PHP_INT_MAX;
-        if ($startPage < 1 || $endPage < 1)
+        if ($startPage < 1)
         {
             throw new RuntimeException('Invalid page number. (Must be > 0)');
         }
 
-        if (!in_array($option, [self::OPTION_SURFACE_DATA, self::OPTION_DETAILED_INFO, self::OPTION_DETAILED_IF_NEW]))
+        $quantity = $quantity ?? PHP_INT_MAX;
+        if ($quantity < 0)
         {
-            throw new RuntimeException('Unknown option: \'' . $option . '\'');
+            throw new RuntimeException('Invalid quantity pages. (Must be > 0)');
         }
 
         $url = HttpRequest::HTTPS . '://' . self::DOMAIN . self::COLLEGES_URL;
@@ -69,6 +64,7 @@ class CollegeService
         $response =  $this->requestHandler->getResponse($startPageUrl);
 
         $maxPageNumber = $this->parser->getMaxPageNumber($response->getContent());
+        $endPage = $startPage + $quantity;
         if ($maxPageNumber < $endPage)
         {
             $endPage = $maxPageNumber;
@@ -77,16 +73,6 @@ class CollegeService
         $responses = array_merge([$response], $this->requestHandler->getCollegeListResponses($url, $startPage, $endPage));
         $collegesData = $this->getCollegesSurfaceDataFromResponses($responses);
         [$newColleges, $updatedColleges] =  $this->dataHandler->handleCollegesBySurfaceData($collegesData, self::DOMAIN);
-
-        if ($option === self::OPTION_DETAILED_IF_NEW)
-        {
-            $this->getDetailedCollegesInfo($newColleges);
-        }
-
-        if ($option === self::OPTION_DETAILED_INFO)
-        {
-            $this->getDetailedCollegesInfo(array_merge($newColleges, $updatedColleges));
-        }
 
         return [$newColleges, $updatedColleges];
     }
