@@ -75,7 +75,7 @@ class CollegeService
         }
 
         $responses = array_merge([$response], $this->requestHandler->getCollegeListResponses($url, $startPage, $endPage));
-        $collegesData = $this->getCollegesSurfaceDataFromResponses(array_column($responses, null, 1));
+        $collegesData = $this->getCollegesSurfaceDataFromResponses($responses);
         [$newColleges, $updatedColleges] =  $this->dataHandler->handleCollegesBySurfaceData($collegesData, self::DOMAIN);
 
         if ($option === self::OPTION_DETAILED_IF_NEW)
