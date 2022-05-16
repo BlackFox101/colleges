@@ -10,6 +10,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class HttpRequest
 {
+    public const HTTPS = 'https';
+
     private HttpClientInterface $httpClient;
 
     public function __construct()

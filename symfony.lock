@@ -81,7 +81,7 @@
         "version": "4.5.1"
     },
     "monolog/monolog": {
-        "version": "2.5.0"
+        "version": "2.6.0"
     },
     "nikic/php-parser": {
         "version": "v4.13.2"
@@ -211,7 +211,7 @@
         "version": "v6.0.3"
     },
     "symfony/monolog-bundle": {
-        "version": "3.7",
+        "version": "3.8",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
