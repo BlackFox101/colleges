@@ -54,7 +54,7 @@ class CollegeService
         }
 
         $quantity = $quantity ?? PHP_INT_MAX;
-        if ($quantity < 0)
+        if ($quantity <= 0)
         {
             throw new RuntimeException('Invalid quantity pages. (Must be > 0)');
         }
@@ -64,7 +64,7 @@ class CollegeService
         $response =  $this->requestHandler->getResponse($startPageUrl);
 
         $maxPageNumber = $this->parser->getMaxPageNumber($response->getContent());
-        $endPage = $startPage + $quantity;
+        $endPage = $startPage + $quantity - 1;
         if ($maxPageNumber < $endPage)
         {
             $endPage = $maxPageNumber;
