@@ -1,6 +1,6 @@
 ## Запуск скрипта
 ```bash
-php bin/console app:get-colleges <--option=option> <start-page-number> <$quantity>
+php bin/console app:get-colleges <--option=option> <start-page-number> <quantity>
 ```
 
 ### Параметры
