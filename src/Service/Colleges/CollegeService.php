@@ -74,7 +74,7 @@ class CollegeService
             $endPage = $maxPageNumber;
         }
 
-        $responses = array_merge([$startPageUrl => $response], $this->requestHandler->getCollegeListResponses($url, $startPage, $endPage));
+        $responses = array_merge([$response], $this->requestHandler->getCollegeListResponses($url, $startPage, $endPage));
         $collegesData = $this->getCollegesSurfaceDataFromResponses(array_column($responses, null, 1));
         [$newColleges, $updatedColleges] =  $this->dataHandler->handleCollegesBySurfaceData($collegesData, self::DOMAIN);
 
